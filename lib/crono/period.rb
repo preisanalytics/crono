@@ -11,6 +11,14 @@ module Crono
       @on = parse_on(on) if on
     end
 
+    def self.from_h(hash)
+      hash = hash.symbolize_keys
+      if hash[:period] =~ /^(\d{0,10})\.(year|month|week|day|hour|minute|second)s?$/
+         period = $1.to_i.send($2)
+      end
+      new(period, at: hash[:at], on: hash[:on])
+    end
+
     def next(since: nil)
       if @interval
         if since
@@ -37,6 +45,15 @@ module Crono
       desc
     end
 
+    def to_h
+      fail unless @period.is_a?(ActiveSupport::Duration) 
+      hash = {}
+      hash[:period] = @period.inspect.gsub(' ','.') 
+      hash[:at] = "#{@at_hour}:#{@at_min}"
+      hash[:on] = @on
+      hash
+    end
+
     private
 
     def initial_next
@@ -53,6 +70,7 @@ module Crono
     end
 
     def parse_on(on)
+      return on if on.is_a? Numeric
       day_number = DAYS.index(on)
       fail "Wrong 'on' day" unless day_number
       fail "period should be at least 1 week to use 'on'" if @period < 1.week

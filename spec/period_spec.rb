@@ -8,6 +8,31 @@ describe Crono::Period do
     end
   end
 
+  describe '#to_h' do
+    it 'should transform period' do
+      @period = Crono::Period.new(1.week, on: :monday, at: '15:20')
+      expect(@period.to_h[:period]).to eq("7.days")
+    end
+
+    it 'should transform at' do
+      @period = Crono::Period.new(1.week, on: :monday, at: '15:20')
+      expect(@period.to_h[:at]).to eq("15:20")
+    end
+
+    it 'should transform on' do
+      @period = Crono::Period.new(1.week, on: :monday, at: '15:20')
+      expect(@period.to_h[:on]).to eq(0)
+    end
+  end
+
+  describe '.from_h' do
+    it 'should transform period' do
+      @period_hash = {:period=>"7.days", :at=>"15:20", :on=>0}
+      @period = Crono::Period.from_h(@period_hash)
+      expect(@period.next).to be_eql(Chronic.parse('next monday').change(hour: 15, min: 20))
+    end
+  end
+
   describe '#next' do
     context 'in weakly basis' do
       it "should raise error if 'on' is wrong" do
@@ -31,6 +56,13 @@ describe Crono::Period do
 
       it "should return a next week day 'on'" do
         @period = Crono::Period.new(1.week, on: :thursday)
+        Timecop.freeze(Time.now.beginning_of_week.advance(days: 4)) do
+          expect(@period.next).to be_eql(Time.now.next_week.advance(days: 3))
+        end
+      end
+
+      it "should return a next week day 'on' when is a number" do
+        @period = Crono::Period.new(1.week, on: 3)
         Timecop.freeze(Time.now.beginning_of_week.advance(days: 4)) do
           expect(@period.next).to be_eql(Time.now.next_week.advance(days: 3))
         end
