@@ -7,7 +7,7 @@ module Crono
     include Logging
 
     attr_accessor :performer, :period, :job_args, :last_performed_at,
-                  :next_performed_at, :job_log, :job_logger, :healthy, :execution_interval
+                  :next_perform_at, :job_log, :job_logger, :healthy, :execution_interval
 
     def initialize(performer, period, job_args)
       self.execution_interval = 0.minutes
@@ -15,12 +15,14 @@ module Crono
       self.job_args = JSON.generate(job_args) 
       self.job_log = StringIO.new
       self.job_logger = Logger.new(job_log)
-      self.next_performed_at = period.next
+      self.next_perform_at = period.next
       @semaphore = Mutex.new
+      load
+      save
     end
 
     def next
-      return next_performed_at if next_performed_at.future?
+      return next_perform_at if next_perform_at.future?
       Time.now
     end
 
@@ -37,7 +39,7 @@ module Crono
 
       log "Perform #{performer}"
       self.last_performed_at = Time.now
-      self.next_performed_at = period.next(since: last_performed_at)
+      self.next_perform_at = period.next(since: last_performed_at)
 
       Thread.new { perform_job }
     end
@@ -52,7 +54,7 @@ module Crono
 
     def load
       self.last_performed_at = model.last_performed_at
-      self.next_performed_at = period.next(since: last_performed_at)
+      self.next_perform_at = period.next(since: last_performed_at)
     end
 
     private
@@ -65,7 +67,9 @@ module Crono
       saved_log = model.reload.log || ''
       log_to_save = saved_log + job_log.string
       model.update(last_performed_at: last_performed_at, log: log_to_save,
-                   healthy: healthy, args: job_args)
+                   args: job_args, healthy: healthy, 
+                   next_perform_at: next_perform_at, 
+                   period: JSON.generate(period.to_h))
     end
 
     def perform_job
@@ -111,14 +115,16 @@ module Crono
       return false if execution_interval == 0.minutes
 
       return true if self.last_performed_at.present? && self.last_performed_at > execution_interval.ago
-      return true if model.updated_at.present? && model.created_at != model.updated_at && model.updated_at > execution_interval.ago
+      # TODO: replace this with something else
+      #return true if model.updated_at.present? && model.created_at != model.updated_at && model.updated_at > execution_interval.ago
 
       Crono::CronoJob.transaction do
         job_record = Crono::CronoJob.where(job_id: job_id).lock(true).first
 
-        return true if  job_record.updated_at.present? &&
-                        job_record.updated_at != job_record.created_at &&
-                        job_record.updated_at > execution_interval.ago
+      # TODO: replace this with something else
+      #  return true if  job_record.updated_at.present? &&
+      #                  job_record.updated_at != job_record.created_at &&
+      #                  job_record.updated_at > execution_interval.ago
 
         job_record.touch
 

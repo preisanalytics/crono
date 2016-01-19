@@ -16,6 +16,11 @@ describe Crono::Job do
     expect(job_with_args.job_args).to eq '[{"some":"data"}]'
   end
 
+  it 'should save the model add creation' do
+    expect_any_instance_of(Crono::Job).to receive(:save)
+    Crono::Job.new(TestJob,Crono::Period.new(2.day, at: '15:20'))
+  end
+
   describe '#next' do
     it 'should return next performing time according to period' do
       expect(job.next).to be_eql period.next
@@ -91,11 +96,6 @@ describe Crono::Job do
   end
 
   describe '#save' do
-    it 'should save new job to DB' do
-      expect(Crono::CronoJob.where(job_id: job.job_id)).to_not exist
-      job.save
-      expect(Crono::CronoJob.where(job_id: job.job_id)).to exist
-    end
 
     it 'should update saved job' do
       job.last_performed_at = Time.now
@@ -106,6 +106,8 @@ describe Crono::Job do
       expect(@crono_job.last_performed_at.utc.to_s).to be_eql job.last_performed_at.utc.to_s
       expect(@crono_job.healthy).to be true
       expect(@crono_job.args).to eq '[{"some":"data"}]'
+      expect(@crono_job.next_perform_at).to eq period.next
+      expect(@crono_job.period).to eq '{"period":"2.days","at":"15:0","on":null}'
     end
 
     it 'should save and truncate job log' do
