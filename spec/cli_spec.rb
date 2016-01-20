@@ -95,42 +95,6 @@ describe Crono::CLI do
       end
     end
 
-    it 'should create update job' do
-      cli.config.load_db = true
-      cli.config.ignore_cronotab = true
-      cli.config.update_jobs = true
-
-      job.save
-      cli.send(:load_jobs)
-
-      job_exists = false
-      Crono.scheduler.jobs.each do |scheduled_job|
-        if scheduled_job.job_id == Crono::Job.job_id(Crono::JobUpdater, Crono::Period.new(5.minutes), [])
-          job_exists = true 
-          break
-        end
-      end
-      expect(job_exists).to be true
-    end
-
-    it 'should remove update job if its in the database but not set in config' do
-      cli.config.load_db = true
-      cli.config.ignore_cronotab = true
-      cli.config.update_jobs = false
-
-      Crono::Job.create(Crono::JobUpdater, Crono::Period.new(5.minutes), [])
-
-      cli.send(:load_jobs)
-
-      job_exists = false
-      Crono.scheduler.jobs.each do |scheduled_job|
-        if scheduled_job.job_id == Crono::Job.job_id(Crono::JobUpdater, Crono::Period.new(5.minutes), [])
-          job_exists = true 
-          break
-        end
-      end
-      expect(job_exists).to be false
-    end
   end
 
 
