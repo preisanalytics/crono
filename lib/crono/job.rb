@@ -22,6 +22,12 @@ module Crono
       "Perform #{performer} #{period.description} with #{JSON.generate(job_args)}"
     end
 
+    def self.all_past
+      Crono::CronoJob.where("next_perform_at < ?", Time.now).map do |model|
+        new(model)
+      end
+    end
+
     attr_accessor :model, :job_log, :job_logger, :execution_interval
 
     def initialize(model)
@@ -83,6 +89,21 @@ module Crono
 
     def job_id
       model.job_id
+    end
+
+    def perform_locked(mutex)
+      Thread.new do
+        mutex.synchronize do 
+          model.with_lock do 
+            #check if it still should run
+            if next_perform_at <= Time.now
+              self.last_performed_at = Time.now
+              self.next_perform_at = period.next(since: last_performed_at)
+              perform_job
+            end
+          end
+        end
+      end
     end
 
     def perform

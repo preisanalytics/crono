@@ -80,7 +80,7 @@ module Crono
       ENV['RACK_ENV'] = ENV['RAILS_ENV'] = config.environment
       require 'rails'
       require File.expand_path('config/environment.rb')
-      ::Rails.application.eager_load! if config.daemonize
+      #::Rails.application.eager_load! if config.daemonize
     end
 
     def load_jobs
@@ -92,13 +92,6 @@ module Crono
       Crono.scheduler.clear
       Crono::Job.load_all.each do |job|
         Crono.scheduler.add_job(job)
-      end
-      if config.update_jobs
-        Crono.scheduler.add_job Crono::Job.create(Crono::JobUpdater, Crono::Period.new(5.minutes), [])
-      else
-        Crono.scheduler.jobs.delete_if do | job |
-          job.job_id == Crono::Job.job_id(Crono::JobUpdater, Crono::Period.new(5.minutes), [])
-        end
       end
     end
 
@@ -116,10 +109,20 @@ module Crono
         end
       end
       Daemons.run_proc(config.process_name, dir: config.piddir, dir_mode: :normal, monitor: config.monitor, ARGV: @argv) do |*_argv|
-        Dir.chdir(root)
-        Crono.logger = Logger.new(config.logfile)
+        begin
+          Dir.chdir(root)
+          Crono.logger = Logger.new(config.logfile)
 
-        start_working_loop
+          if config.update_jobs
+            start_updating_working_loop
+          else
+           start_working_loop
+          end
+        rescue => e
+          STDERR.puts e.message
+          STDERR.puts e.backtrace
+          ::Rails.logger.fatal(e) if rails_logger_defined?
+        end
       end
     end
 
@@ -136,6 +139,18 @@ module Crono
         next_time, jobs = Crono.scheduler.next_jobs
         sleep(next_time - Time.now) if next_time > Time.now
         jobs.each(&:perform)
+      end
+    end
+
+    def start_updating_working_loop
+      @mutex = Mutex.new
+      loop do
+        Crono.logger.info "test"
+        jobs = Crono::Job.all_past
+        jobs.each do |job|
+          job.perform_locked @mutex
+        end
+        sleep(10) 
       end
     end
 
