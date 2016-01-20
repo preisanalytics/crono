@@ -14,6 +14,9 @@ describe Crono::Config do
       expect(@config.deprecated_daemonize).to be false
       expect(@config.monitor).to be false
       expect(@config.environment).to be_eql ENV['RAILS_ENV']
+      expect(@config.load_db).to be false
+      expect(@config.update_jobs).to be false
+      expect(@config.ignore_cronotab).to be false
     end
 
     describe "#pidfile" do

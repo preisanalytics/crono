@@ -24,7 +24,7 @@ module Crono
 
       write_pid unless config.daemonize
       load_rails
-      Cronotab.process(File.expand_path(config.cronotab))
+      load_jobs
       print_banner
 
       check_jobs
@@ -81,6 +81,25 @@ module Crono
       require 'rails'
       require File.expand_path('config/environment.rb')
       ::Rails.application.eager_load! if config.daemonize
+    end
+
+    def load_jobs
+      Cronotab.process(File.expand_path(config.cronotab)) unless config.ignore_cronotab
+      load_jobs_from_db if config.load_db
+    end
+
+    def load_jobs_from_db
+      Crono.scheduler.clear
+      Crono::Job.load_all.each do |job|
+        Crono.scheduler.add_job(job)
+      end
+      if config.update_jobs
+        Crono.scheduler.add_job Crono::Job.create(Crono::JobUpdater, Crono::Period.new(5.minutes), [])
+      else
+        Crono.scheduler.jobs.delete_if do | job |
+          job.job_id == Crono::Job.job_id(Crono::JobUpdater, Crono::Period.new(5.minutes), [])
+        end
+      end
     end
 
     def check_jobs
@@ -155,6 +174,19 @@ module Crono
         opts.on '-e', '--environment ENV', "Application environment (Default: #{config.environment})" do |env|
           config.environment = env
         end
+
+        opts.on '-l', '--load_db', "Use jobs from database (Default: #{config.load_db})" do |load_db|
+          config.load_db = load_db
+        end
+        
+        opts.on '-u', '--update_jobs', "Update jobs from database. Only works with -l. (Default: #{config.update_jobs})" do |update_jobs|
+          config.update_jobs = update_jobs
+        end
+
+        opts.on '-i', '--ignore_cronotab', "Do not load jobs from Cronotab file (Default: #{config.ignore_cronotab})" do |ignore_cronotab|
+          config.ignore_cronotab = ignore_cronotab
+        end
+
       end.parse!(argv)
     end
 

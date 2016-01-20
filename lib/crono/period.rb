@@ -49,7 +49,7 @@ module Crono
       fail unless @period.is_a?(ActiveSupport::Duration) 
       hash = {}
       hash[:period] = @period.inspect.gsub(' ','.') 
-      hash[:at] = "#{@at_hour}:#{@at_min}"
+      hash[:at] = "#{@at_hour}:#{@at_min}" if @at_hour and @at_min
       hash[:on] = @on
       hash
     end

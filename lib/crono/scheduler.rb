@@ -7,8 +7,11 @@ module Crono
       self.jobs = []
     end
 
+    def clear
+      self.jobs = []
+    end
+
     def add_job(job)
-      job.load
       jobs << job
     end
 

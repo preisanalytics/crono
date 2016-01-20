@@ -6,19 +6,70 @@ module Crono
   class Job
     include Logging
 
-    attr_accessor :performer, :period, :job_args, :last_performed_at,
-                  :next_perform_at, :job_log, :job_logger, :healthy, :execution_interval
+    def self.load_all
+      Crono::CronoJob.all.map do |model|
+        new(model)
+      end
+    end
 
-    def initialize(performer, period, job_args)
+    def self.create(performer, period, job_args)
+      model = Crono::CronoJob.create_with(performer: performer.to_s, period: JSON.generate(period.to_h), args: JSON.generate(job_args), next_perform_at: period.next)
+        .find_or_create_by(job_id: job_id(performer, period, job_args))
+      new(model)
+    end
+
+    def self.job_id(performer, period, job_args)
+      "Perform #{performer} #{period.description} with #{JSON.generate(job_args)}"
+    end
+
+    attr_accessor :model, :job_log, :job_logger, :execution_interval
+
+    def initialize(model)
       self.execution_interval = 0.minutes
-      self.performer, self.period = performer, period
-      self.job_args = JSON.generate(job_args) 
+      self.model = model
       self.job_log = StringIO.new
       self.job_logger = Logger.new(job_log)
-      self.next_perform_at = period.next
       @semaphore = Mutex.new
-      load
-      save
+    end
+
+    def performer
+      model.performer.constantize
+    end
+
+    def period
+      Period.from_h JSON.parse(model.period)
+    end
+
+    def job_args
+      JSON.parse(model.args)
+    end
+
+    def job_args=(args)
+      model.args = JSON.generate(args)
+    end
+
+    def last_performed_at
+      model.last_performed_at
+    end
+
+    def last_performed_at=(last_performed_at)
+      model.last_performed_at = last_performed_at
+    end
+
+    def next_perform_at
+      model.next_perform_at
+    end
+
+    def next_perform_at=(next_perform_at)
+      model.next_perform_at = next_perform_at
+    end
+
+    def healthy
+      model.healthy
+    end
+
+    def healthy=(healthy)
+      model.healthy = healthy
     end
 
     def next
@@ -27,11 +78,11 @@ module Crono
     end
 
     def description
-      "Perform #{performer} #{period.description}"
+      job_id
     end
 
     def job_id
-      description
+      model.job_id
     end
 
     def perform
@@ -52,11 +103,6 @@ module Crono
       end
     end
 
-    def load
-      self.last_performed_at = model.last_performed_at
-      self.next_perform_at = period.next(since: last_performed_at)
-    end
-
     private
 
     def clear_job_log
@@ -64,16 +110,16 @@ module Crono
     end
 
     def update_model
-      saved_log = model.reload.log || ''
-      log_to_save = saved_log + job_log.string
-      model.update(last_performed_at: last_performed_at, log: log_to_save,
-                   args: job_args, healthy: healthy, 
-                   next_perform_at: next_perform_at, 
-                   period: JSON.generate(period.to_h))
+      model.transaction do
+        model.save
+        saved_log = model.reload.log || ''
+        model.log = saved_log + job_log.string
+        model.save
+      end
     end
 
     def perform_job
-      performer.new.perform *JSON.parse(job_args)
+      performer.new.perform *job_args
     rescue StandardError => e
       handle_job_fail(e)
     else
@@ -107,24 +153,18 @@ module Crono
       end
     end
 
-    def model
-      @model ||= Crono::CronoJob.find_or_create_by(job_id: job_id)
-    end
-
     def perform_before_interval?
       return false if execution_interval == 0.minutes
 
       return true if self.last_performed_at.present? && self.last_performed_at > execution_interval.ago
-      # TODO: replace this with something else
-      #return true if model.updated_at.present? && model.created_at != model.updated_at && model.updated_at > execution_interval.ago
+      return true if model.updated_at.present? && model.created_at != model.updated_at && model.updated_at > execution_interval.ago
 
       Crono::CronoJob.transaction do
         job_record = Crono::CronoJob.where(job_id: job_id).lock(true).first
 
-      # TODO: replace this with something else
-      #  return true if  job_record.updated_at.present? &&
-      #                  job_record.updated_at != job_record.created_at &&
-      #                  job_record.updated_at > execution_interval.ago
+        return true if  job_record.updated_at.present? &&
+          job_record.updated_at != job_record.created_at &&
+          job_record.updated_at > execution_interval.ago
 
         job_record.touch
 

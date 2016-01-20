@@ -9,6 +9,7 @@ class CreateCronoJobs < ActiveRecord::Migration
       t.timestamps null: false
       t.text      :period
       t.datetime  :next_perform_at
+      t.string    :performer
     end
     add_index :crono_jobs, [:job_id], unique: true
   end
