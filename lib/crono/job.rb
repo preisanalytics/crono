@@ -18,6 +18,11 @@ module Crono
       new(model)
     end
 
+    def self.find_by(*args)
+      model = Crono::CronoJob.find_by(*args)
+      return new(model) if model
+    end
+
     def self.job_id(performer, period, job_args)
       "Perform #{performer} #{period.description} with #{JSON.generate(job_args)}"
     end
