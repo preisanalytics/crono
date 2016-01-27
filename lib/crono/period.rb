@@ -1,6 +1,15 @@
 module Crono
   # Period describe frequency of jobs
   class Period
+
+    def self.load(period_hash)
+      self.from_h period_hash if period_hash
+    end
+
+    def self.dump(period)
+      period.to_h if period
+    end
+
     DAYS = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday,
             :sunday]
 

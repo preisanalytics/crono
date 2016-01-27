@@ -11,7 +11,7 @@
         %th
       - @jobs.each do |job|
         %tr
-          %td= job.job_id
+          %td= job.name
           %td= job.last_performed_at || 'Never performed yet'
           %td
             - if job.last_performed_at.nil?

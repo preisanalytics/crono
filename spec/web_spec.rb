@@ -4,13 +4,16 @@ include Rack::Test::Methods
 
 describe Crono::Web do
   let(:app) { Crono::Web }
+  let(:period) { Crono::Period.new(2.day, at: '15:00') }
 
   before do
     Crono::CronoJob.destroy_all
-    @test_job_id = 'Perform TestJob every 5 seconds'
+    @test_name = 'Perform TestJob every 5 seconds'
     @test_job_log = 'All runs ok'
     @test_job = Crono::CronoJob.create!(
-      job_id: @test_job_id,
+      period: period,
+      performer: TestJob,
+      name: @test_name,
       log: @test_job_log
     )
   end
@@ -21,7 +24,7 @@ describe Crono::Web do
     it 'should show all jobs' do
       get '/'
       expect(last_response).to be_ok
-      expect(last_response.body).to include @test_job_id
+      expect(last_response.body).to include @test_name
     end
 
     it 'should show a error mark when a job is unhealthy' do
@@ -47,7 +50,7 @@ describe Crono::Web do
     it 'should show job log' do
       get "/job/#{@test_job.id}"
       expect(last_response).to be_ok
-      expect(last_response.body).to include @test_job_id
+      expect(last_response.body).to include @test_name
       expect(last_response.body).to include @test_job_log
     end
 

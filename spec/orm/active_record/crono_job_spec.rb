@@ -1,28 +1,68 @@
 require 'spec_helper'
 
 describe Crono::CronoJob do
-  let(:valid_attrs) do
-    {
-      job_id: 'Perform TestJob every 3 days'
-    }
+
+  let(:period) { Crono::Period.new(2.day, at: '15:00') }
+  let(:args) {[{some: 'data'}]}
+  let(:job) { Crono::CronoJob.create(performer: TestJob, period: period, args: []) }
+  let(:job_with_args) { Crono::CronoJob.create(performer: TestJob, period: period, args: args) }
+  let(:failing_job) { Crono::CronoJob.create(performer: TestFailingJob, period: period, args: []) }
+
+  it 'should contain performer and period' do
+    expect(job.performer).to eq "TestJob"
+    expect(job.period.to_h).to eq period.to_h
   end
 
-  it 'should validate presence of job_id' do
-    @crono_job = Crono::CronoJob.new
-    expect(@crono_job).not_to be_valid
-    expect(@crono_job.errors.added?(:job_id, :blank)).to be true
+  it 'should contain data as JSON String' do
+    expect(job_with_args.args).to eq [{"some" => "data"}]
   end
 
-  it 'should validate uniqueness of job_id' do
-    Crono::CronoJob.create!(job_id: 'TestJob every 2 days')
-    @crono_job = Crono::CronoJob.create(job_id: 'TestJob every 2 days')
-    expect(@crono_job).not_to be_valid
-    expect(@crono_job.errors.added?(:job_id, :taken)).to be true
+
+  describe '#save' do
+
+    it 'should update saved job' do
+      job.last_performed_at = Time.now
+      job.healthy = true
+      job.args = [{some: 'data'}]
+      job.save
+      @crono_job = Crono::CronoJob.find_by(id: job.id)
+      expect(@crono_job.last_performed_at.utc.to_s).to be_eql job.last_performed_at.utc.to_s
+      expect(@crono_job.healthy).to be true
+
+      expect(@crono_job.args).to eq [{"some" => "data"}]
+      expect(@crono_job.next_perform_at).to eq period.next(since: job.last_performed_at)
+      expect(@crono_job.period.to_h).to eq ({period: "2.days" ,at:"15:0",on:nil})
+    end
+
+    it 'should save and truncate job log_message' do
+      message = 'test message'
+      job.send(:log_message, message)
+      job.save
+      expect(job.reload.log).to include message
+      expect(job.job_log.string).to be_empty
+    end
   end
 
-  it 'should save job_id to DB' do
-    Crono::CronoJob.create!(valid_attrs)
-    @crono_job = Crono::CronoJob.find_by(job_id: valid_attrs[:job_id])
-    expect(@crono_job).to be_present
+  describe '#log_message' do
+    it 'should write log messages to both common and job log' do
+      message = 'Test message'
+      expect(job.logger).to receive(:log).with(Logger::INFO, message)
+      expect(job.job_logger).to receive(:log).with(Logger::INFO, message)
+      job.send(:log_message, message)
+    end
+
+    it 'should write job log to Job#job_log' do
+      message = 'Test message'
+      job.send(:log_message, message)
+      expect(job.job_log.string).to include(message)
+    end
+  end
+
+  describe '#log_error' do
+    it 'should call log with ERROR severity' do
+      message = 'Test message'
+      expect(job).to receive(:log_message).with(message, Logger::ERROR)
+      job.send(:log_error, message)
+    end
   end
 end

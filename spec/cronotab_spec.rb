@@ -4,7 +4,7 @@ describe Crono::Cronotab do
   describe '#process' do
     it 'should load cronotab file' do
       cronotab_path = File.expand_path('../assets/good_cronotab.rb', __FILE__)
-      expect(Crono.scheduler).to receive(:add_job).with(kind_of(Crono::Job))
+      expect(Crono.scheduler).to receive(:add_job).with(kind_of(Crono::CronoJob))
       expect {
         Crono::Cronotab.process(cronotab_path)
       }.to_not raise_error

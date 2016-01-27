@@ -3,8 +3,8 @@ namespace :crono do
   task clean: :environment do
     Crono.scheduler = Crono::Scheduler.new
     Crono::Cronotab.process
-    current_job_ids = Crono.scheduler.jobs.map(&:job_id)
-    Crono::CronoJob.where.not(job_id: current_job_ids).destroy_all
+    current_ids = Crono.scheduler.jobs.map(&:id)
+    Crono::CronoJob.where.not(id: current_ids).destroy_all
   end
 
   desc 'Check cronotab.rb syntax'

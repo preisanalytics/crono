@@ -8,10 +8,15 @@ require 'byebug'
 require 'chronic'
 require 'crono'
 require 'generators/crono/install/templates/migrations/create_crono_jobs.rb'
+require 'pg'
 
+
+conn = PG.connect(dbname: 'postgres')
+conn.exec 'DROP DATABASE IF EXISTS crono_test'
+conn.exec 'CREATE DATABASE crono_test'
 ActiveRecord::Base.establish_connection(
-  adapter: 'sqlite3',
-  database: 'file::memory:?cache=shared'
+  adapter: 'postgresql',
+  database: 'crono_test'
 )
 
 ActiveRecord::Base.logger = Logger.new(STDOUT)

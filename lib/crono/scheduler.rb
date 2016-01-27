@@ -16,7 +16,7 @@ module Crono
     end
 
     def next_jobs
-      jobs.group_by(&:next).sort_by {|time,_| time }.first
+      jobs.group_by(&:next_perform_at).sort_by {|time,_| time }.first
     end
   end
 

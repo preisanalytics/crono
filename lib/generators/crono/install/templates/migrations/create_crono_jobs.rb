@@ -1,17 +1,16 @@
 class CreateCronoJobs < ActiveRecord::Migration
   def self.up
     create_table :crono_jobs do |t|
-      t.string    :job_id, null: false
-      t.text      :log
+      t.text      :name
+      t.string    :performer, null: false
+      t.jsonb     :period, null: false
+      t.jsonb     :args
+      t.datetime  :next_perform_at, null: false
       t.datetime  :last_performed_at
       t.boolean   :healthy
-      t.text      :args
+      t.text      :log
       t.timestamps null: false
-      t.text      :period
-      t.datetime  :next_perform_at
-      t.string    :performer
     end
-    add_index :crono_jobs, [:job_id], unique: true
   end
 
   def self.down

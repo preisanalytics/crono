@@ -58,7 +58,7 @@ describe Crono::CLI do
     end
 
     let(:job) {
-      Crono::Job.create(TestJob,Crono::Period.new(2.day, at: '15:20'), [])
+      Crono::CronoJob.create(performer: TestJob, period: Crono::Period.new(2.day, at: '15:20'), args: [])
     }
 
     it 'scheduler should contain job from db' do 
@@ -69,7 +69,7 @@ describe Crono::CLI do
       cli.send(:load_jobs)
       job_exists = false
       Crono.scheduler.jobs.each do |scheduled_job|
-        if scheduled_job.job_id == job.job_id
+        if scheduled_job.id == job.id
           job_exists = true 
           break
         end
@@ -85,11 +85,11 @@ describe Crono::CLI do
       cli.send(:load_jobs)
       jobs = {}
       Crono.scheduler.jobs.each do |scheduled_job|
-        jobs[scheduled_job.job_id] ||= 0
-        jobs[scheduled_job.job_id] = jobs[scheduled_job.job_id] + 1
+        jobs[scheduled_job.id] ||= 0
+        jobs[scheduled_job.id] = jobs[scheduled_job.id] + 1
       end
 
-      expect(jobs.count).to eq 2
+      expect(jobs.count).to eq 3
       jobs.each do |key, value|
         expect(value).to eq 1
       end

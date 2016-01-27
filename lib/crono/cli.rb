@@ -90,7 +90,7 @@ module Crono
 
     def load_jobs_from_db
       Crono.scheduler.clear
-      Crono::Job.load_all.each do |job|
+      Crono::CronoJob.all.each do |job|
         Crono.scheduler.add_job(job)
       end
     end
@@ -145,8 +145,7 @@ module Crono
     def start_updating_working_loop
       @mutex = Mutex.new
       loop do
-        jobs = Crono::Job.all_past
-        jobs.each do |job|
+        Crono::CronoJob.all_past.each do |job|
           job.perform_locked @mutex
         end
         sleep(10) 

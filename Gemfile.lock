@@ -34,6 +34,7 @@ GEM
     i18n (0.7.0)
     json (1.8.3)
     minitest (5.8.0)
+    pg (0.18.2)
     rack (1.6.4)
     rack-protection (1.5.3)
       rack
@@ -74,6 +75,7 @@ DEPENDENCIES
   crono!
   daemons
   haml
+  pg
   rack-test
   rake (~> 10.0)
   rspec (~> 3.0)
