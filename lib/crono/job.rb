@@ -43,6 +43,20 @@ module Crono
       @semaphore = Mutex.new
     end
 
+    def destroy
+      model.destroy
+    end
+
+    def update(performer: nil, period: nil, job_args: nil)
+      update_hash = {}
+      update_hash[:performer] = performer.to_s if performer
+      update_hash[:period] = JSON.generate(period.to_h) if period
+      update_hash[:next_perform_at] = period.next(since: last_performed_at) if period
+      update_hash[:args] = JSON.generate(job_args.to_h) if job_args
+      model.update(update_hash)
+      model.reload
+    end
+
     def performer
       model.performer.constantize
     end
