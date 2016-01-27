@@ -81,7 +81,7 @@ module Crono
 
     def parse_on(on)
       return on if on.is_a? Numeric
-      day_number = DAYS.index(on)
+      day_number = DAYS.index(on.to_sym)
       fail "Wrong 'on' day" unless day_number
       fail "period should be at least 1 week to use 'on'" if @period < 1.week
       day_number
