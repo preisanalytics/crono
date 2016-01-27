@@ -49,7 +49,7 @@ module Crono
         saved_log = self.reload.log || ''
         self.log = saved_log + job_log.string if job_log
         super
-        clear_job_log
+        clear_job_log if job_log
       end
     end
 
