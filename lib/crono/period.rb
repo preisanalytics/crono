@@ -55,7 +55,6 @@ module Crono
     end
 
     def to_h
-      Rails.logger.info(@period)
       raise "no Duration" unless @period.is_a?(ActiveSupport::Duration) 
       hash = {}
       hash[:iteration] = @period.inspect.gsub(' ','.') 

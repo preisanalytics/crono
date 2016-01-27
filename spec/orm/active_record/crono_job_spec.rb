@@ -31,7 +31,7 @@ describe Crono::CronoJob do
 
       expect(@crono_job.args).to eq [{"some" => "data"}]
       expect(@crono_job.next_perform_at).to eq period.next(since: job.last_performed_at)
-      expect(@crono_job.period.to_h).to eq ({period: "2.days" ,at:"15:0",on:nil})
+      expect(@crono_job.period.to_h).to eq ({iteration: "2.days" ,at:"15:0",on:nil})
     end
 
     it 'should save and truncate job log_message' do

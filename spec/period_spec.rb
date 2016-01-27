@@ -11,7 +11,7 @@ describe Crono::Period do
   describe '#to_h' do
     it 'should transform period' do
       @period = Crono::Period.new(1.week, on: :monday, at: '15:20')
-      expect(@period.to_h[:period]).to eq("7.days")
+      expect(@period.to_h[:iteration]).to eq("7.days")
     end
 
     it 'should transform at' do
@@ -27,7 +27,7 @@ describe Crono::Period do
 
   describe '.from_h' do
     it 'should transform period' do
-      @period_hash = {:period=>"7.days", :at=>"15:20", :on=>0}
+      @period_hash = {:iteration=>"7.days", :at=>"15:20", :on=>0}
       @period = Crono::Period.from_h(@period_hash)
       expect(@period.next).to be_eql(Chronic.parse('next monday').change(hour: 15, min: 20))
     end
