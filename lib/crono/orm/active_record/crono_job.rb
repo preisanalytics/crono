@@ -47,7 +47,7 @@ module Crono
       self.transaction do
         super
         saved_log = self.reload.log || ''
-        self.log = saved_log + job_log.string
+        self.log = saved_log + job_log.string if job_log
         super
         clear_job_log
       end
