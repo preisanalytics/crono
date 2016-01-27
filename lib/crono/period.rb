@@ -55,7 +55,8 @@ module Crono
     end
 
     def to_h
-      fail unless @period.is_a?(ActiveSupport::Duration) 
+      Rails.logger.info(@period)
+      raise "no Duration" unless @period.is_a?(ActiveSupport::Duration) 
       hash = {}
       hash[:iteration] = @period.inspect.gsub(' ','.') 
       hash[:at] = "#{@at_hour}:#{@at_min}" if @at_hour and @at_min
