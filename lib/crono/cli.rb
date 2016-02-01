@@ -72,7 +72,7 @@ module Crono
       logger.info 'Jobs:'
       Crono.scheduler.jobs.each do |job|
         logger.info "'#{job.performer}' with rule '#{job.period.description}'"\
-                    " next time will perform at #{job.next}"
+                    " next time will perform at #{job.next_perform_at}"
       end
     end
 

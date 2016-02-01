@@ -8,6 +8,10 @@ module Crono
 
     serialize :period, Crono::Period
 
+    def self.all_past
+      where("next_perform_at <= ?", Time.now).all
+    end
+
     before_save :calculate_next_perform
     before_create :calculate_next_perform
 
@@ -44,13 +48,11 @@ module Crono
 
 
     def save
-      self.transaction do
         super
         saved_log = self.reload.log || ''
         self.log = saved_log + job_log.string if job_log
         super
         clear_job_log if job_log
-      end
     end
 
     private
@@ -89,7 +91,8 @@ module Crono
 
     def log_message(message, severity = Logger::INFO)
       logger.log severity, message
-      job_logger.log severity, message
+      self.job_logger ||= Logger.new(job_log)
+      self.job_logger.log severity, message
     end
 
   end
