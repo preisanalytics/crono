@@ -22,6 +22,18 @@ module Crono
 
     def self.from_h(hash)
       hash = hash.symbolize_keys
+      if hash[:type] == 'ice_cube'
+        create_from_ice_cube(hash[:ice_cube])
+      else
+        create_from_plain_hash(hash)
+      end
+    end
+
+    def self.create_from_ice_cube(ice_cube_hash)
+      IceCubePeriod.from_h(ice_cube_hash)
+    end
+
+    def self.create_from_plain_hash(hash)
       if hash[:iteration] =~ /^(\d{0,10})\.(year|month|week|day|hour|minute|second)s?$/
          period = $1.to_i.send($2)
       end

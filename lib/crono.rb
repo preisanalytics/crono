@@ -5,6 +5,7 @@ end
 require 'active_support/all'
 require 'crono/version'
 require 'crono/logging'
+require 'crono/ice_cube_period'
 require 'crono/period'
 require 'crono/time_of_day'
 require 'crono/interval'

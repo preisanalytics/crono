@@ -26,10 +26,29 @@ describe Crono::Period do
   end
 
   describe '.from_h' do
-    it 'should transform period' do
+    it 'transform period' do
       @period_hash = {:iteration=>"7.days", :at=>"15:20", :on=>0}
       @period = Crono::Period.from_h(@period_hash)
       expect(@period.next).to be_eql(Chronic.parse('next monday').change(hour: 15, min: 20))
+    end
+
+    let(:ice_cube_schedule) do 
+      schedule = schedule = IceCube::Schedule.new(Time.now)
+      schedule.add_recurrence_rule IceCube::Rule.daily.hour_of_day(1,3,5,7,9).minute_of_hour(0).second_of_minute(0)
+      schedule
+    end
+
+    let(:ice_cube_hash) do 
+      ice_cube_schedule.to_hash
+    end
+
+    let(:ice_cube_period_hash) {
+      {:type=>'ice_cube', :ice_cube => ice_cube_hash}
+    }
+
+    it 'takes a runt expression' do
+      period = Crono::Period.from_h(ice_cube_period_hash)
+      expect(period).to be_kind_of Crono::IceCubePeriod
     end
   end
 
@@ -154,5 +173,6 @@ describe Crono::Period do
         end
       end
     end
+
   end
 end

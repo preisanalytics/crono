@@ -6,6 +6,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'timecop'
 require 'byebug'
 require 'chronic'
+require 'ice_cube'
 require 'crono'
 require 'generators/crono/install/templates/migrations/create_crono_jobs.rb'
 require 'pg'
