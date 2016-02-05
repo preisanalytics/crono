@@ -1,3 +1,5 @@
+require 'ice_cube'
+
 module Crono
   class IceCubePeriod
 
