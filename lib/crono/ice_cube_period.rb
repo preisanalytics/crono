@@ -20,6 +20,10 @@ module Crono
     def next(since: Time.now)
       self.schedule.next_occurrence(since).to_time
     end
+    
+    def description
+      self.schedule.recurrence_rules.map{ | rule | rule.to_s}.join(" and ")
+    end
 
     def to_h
       {type: 'ice_cube', ice_cube: schedule.to_hash}
