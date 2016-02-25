@@ -77,6 +77,7 @@ module Crono
       log_error "Finished #{performer} in #{finished_time_sec} seconds"\
                 " with error: #{exception.message}"
       log_error exception.backtrace.join("\n")
+      CommerceUp.metric.error("crono_count_not_perform", message: "exception during shedule execution", crono_job_id: self.id) if CommerceUp
     end
 
     def handle_job_success
