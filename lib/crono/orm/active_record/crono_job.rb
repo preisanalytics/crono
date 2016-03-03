@@ -9,7 +9,7 @@ module Crono
     serialize :period, Crono::Period
 
     def self.all_past
-      where("next_perform_at <= ?", Time.now).all
+      where('next_perform_at <= ?', Time.now).where('pause IS FALSE AND maintenance_pause IS FALSE').all
     end
 
     before_save :calculate_next_perform

@@ -17,6 +17,39 @@ describe Crono::CronoJob do
     expect(job_with_args.args).to eq [{"some" => "data"}]
   end
 
+  describe '.all_past' do
+    let(:period) { Crono::Period.new(20.minutes) }
+    let!(:past_job) { Crono::CronoJob.create(performer: TestJob, period: period, args: []) }
+    let!(:past_job_paused) { Crono::CronoJob.create(performer: TestJob, period: period, args: [], pause: true) }
+    let!(:past_job_maintainenc_pause) { Crono::CronoJob.create(performer: TestJob, period: period, args: [], maintenance_pause: true) }
+
+    it 'returns all past' do
+      Timecop.freeze(Date.today + 2.days) do
+        expect(Crono::CronoJob.all_past.count > 0).to eq true
+        Crono::CronoJob.all_past.each do |job|
+          expect(job.next_perform_at < Time.now).to eq true
+        end
+      end
+    end
+
+    it 'returns all not stoped by pause field' do
+      Timecop.freeze(Date.today + 2.days) do
+        expect(Crono::CronoJob.all_past.count > 0).to eq true
+        Crono::CronoJob.all_past.each do |job|
+          expect(job.maintenance_pause).not_to eq true
+        end
+      end
+    end
+
+    it 'returns all not stoped by maintaince_pause field' do
+      Timecop.freeze(Date.today + 2.days) do
+        expect(Crono::CronoJob.all_past.count > 0).to eq true
+        Crono::CronoJob.all_past.each do |job|
+          expect(job.pause).not_to eq true
+        end
+      end
+    end
+  end
 
   describe '#save' do
 

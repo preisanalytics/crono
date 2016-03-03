@@ -10,6 +10,8 @@ class CreateCronoJobs < ActiveRecord::Migration
       t.boolean   :healthy
       t.text      :log
       t.timestamps null: false
+      t.boolean   :pause, default: false
+      t.boolean   :maintenance_pause, default: false
     end
   end
 
