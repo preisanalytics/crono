@@ -17,7 +17,7 @@ module Crono
 
     def initialize(*args)
       self.job_log = StringIO.new
-      self.job_logger = Logger.new(job_log)
+      self.job_logger ||= Rails.logger
       super *args
     end
 
@@ -92,7 +92,7 @@ module Crono
 
     def log_message(message, severity = Logger::INFO)
       logger.log severity, message
-      self.job_logger ||= Logger.new(job_log)
+      self.job_logger ||= Rails.logger
       self.job_logger.log severity, message
     end
 
