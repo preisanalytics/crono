@@ -91,6 +91,9 @@ module Crono
     end
 
     def log_message(message, severity = Logger::INFO)
+      stdout_logger = Logger.new(STDOUT)
+      stdout_logger.level = Logger::WARN
+      stdout_logger.log severity, message
       logger.log severity, message
       self.job_logger ||= Rails.logger
       self.job_logger.log severity, message
