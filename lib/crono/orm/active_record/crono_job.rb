@@ -58,13 +58,24 @@ module Crono
     private
 
     def perform_job
+      logger = Logger.new(File.join(Rails.root, 'log', 'crono_output.log'))
+      logger.info "perform job"
+      logger.info performer
+      logger.info args
       performer.constantize.new.perform *args
+      logger.info "performed_job"
     rescue StandardError => e
+      logger.info "cachted error"
+      logger.info e
+      logger.info e.backtrace.join("\n")
       handle_job_fail(e)
     else
+      logger.info "perform succesed"
       handle_job_success
     ensure
+      logger.info "perform ensure"
       save
+      logger.info "perform ensure2"
     end
 
     def clear_job_log
