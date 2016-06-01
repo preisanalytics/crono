@@ -37,10 +37,7 @@ module Crono
                           .update_all(next_perform_at: next_perform_at, last_performed_at: Time.now)
       if n_updated == 1
         reload
-        # check if it still should run
-        if next_perform_at <= Time.now
-          perform_job
-        end
+        perform_job
       end
     end
 
