@@ -143,10 +143,9 @@ module Crono
     end
 
     def start_updating_working_loop
-      @mutex = Mutex.new
       loop do
         Crono::CronoJob.all_past.each do |job|
-          job.perform_locked @mutex
+          job.perform_locked
         end
         sleep(10) 
       end
