@@ -31,17 +31,15 @@ module Crono
       self
     end
 
-    def perform_locked(mutex)
-      Thread.new do
-        mutex.synchronize do 
-          self.with_lock do 
-            #check if it still should run
-            if next_perform_at <= Time.now
-              self.last_performed_at = Time.now
-              self.next_perform_at = period.next(since: last_performed_at)
-              perform_job
-            end
-          end
+    def perform_locked
+      next_perform_at = period.next(since: last_performed_at)
+      n_updated = CronoJob.all_past.where(id: id)
+                          .update_all(next_perform_at: next_perform_at, last_performed_at: Time.now)
+      if n_updated == 1
+        reload
+        # check if it still should run
+        if next_perform_at <= Time.now
+          perform_job
         end
       end
     end
