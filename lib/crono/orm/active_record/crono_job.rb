@@ -32,6 +32,7 @@ module Crono
     end
 
     def perform_locked
+      reload
       next_perform_at = period.next(since: last_performed_at)
       n_updated = CronoJob.all_past.where(id: id)
                           .update_all(next_perform_at: next_perform_at, last_performed_at: Time.now)

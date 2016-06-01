@@ -28,11 +28,7 @@ module Crono
       print_banner
 
       check_jobs
-      if config.daemonize
-        start_working_loop_in_daemon
-      else
-        start_working_loop
-      end
+      start_updating_working_loop
     end
 
     private
