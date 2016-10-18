@@ -4,7 +4,6 @@ module Crono
   # Crono::CronoJob is a ActiveRecord model to store job state
   class CronoJob < ActiveRecord::Base
     self.table_name = 'crono_jobs'
-    attr_accessor :job_log, :job_logger
 
     serialize :period, Crono::Period
 
@@ -16,8 +15,6 @@ module Crono
     before_create :calculate_next_perform
 
     def initialize(*args)
-      self.job_log = StringIO.new
-      self.job_logger ||= Rails.logger
       super *args
     end
 
@@ -46,53 +43,30 @@ module Crono
       end
     end
 
-
-    def save
-        super
-        saved_log = self.reload.log || ''
-        self.log = saved_log + job_log.string if job_log
-        super
-        clear_job_log if job_log
-    end
-
     private
 
     def perform_job
-      performer.constantize.new.perform *args
+      performer.constantize.new.perform(*args)
+      handle_job_success
     rescue StandardError => e
       handle_job_fail(e)
-    else
-      handle_job_success
     ensure
       save
-    end
-
-    def clear_job_log
-      job_log.truncate(job_log.rewind)
     end
 
     def handle_job_fail(exception)
       finished_time_sec = format('%.2f', Time.now - last_performed_at)
       self.healthy = false
-      log_error "Finished #{performer} in #{finished_time_sec} seconds"\
+      Rails.logger.error "Finished #{performer} in #{finished_time_sec} seconds"\
                 " with error: #{exception.message}"
-      log_error exception.backtrace.join("\n")
+      Rails.logger.error exception.backtrace.join("\n")
       CommerceUp.metric.error("crono_count_not_perform", message: "exception during shedule execution", crono_job_id: self.id) if CommerceUp
     end
 
     def handle_job_success
       finished_time_sec = format('%.2f', Time.now - last_performed_at)
       self.healthy = true
-      log_message "Finished #{performer} in #{finished_time_sec} seconds"
-    end
-
-    def log_error(message)
-      log_message(message, Logger::ERROR)
-    end
-
-    def log_message(message, severity = Logger::INFO)
-      self.job_logger ||= Rails.logger
-      self.job_logger.log severity, message
+      Rails.logger.info "Finished #{performer} in #{finished_time_sec} seconds"
     end
 
   end
