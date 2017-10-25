@@ -34,10 +34,10 @@ module Crono
           self.with_lock do 
             #check if it still should run
             if next_perform_at <= Time.now
-              old_next_perform_at = next_perform_at
+              scheduled_execution_time = next_perform_at
               self.last_performed_at = Time.now
               self.next_perform_at = period.next(since: last_performed_at)
-              perform_job(old_next_perform_at)
+              perform_job(scheduled_execution_time)
             end
           end
         end
@@ -46,9 +46,9 @@ module Crono
 
     private
 
-    def perform_job(next_perform_at)
+    def perform_job(scheduled_execution_time)
       args = self.args.first.stringify_keys
-      args["arguments"]["next_perform_at"] = next_perform_at
+      args["arguments"]["scheduled_execution_time"] = next_perform_at
       performer.constantize.new.perform(args)
       handle_job_success
     rescue StandardError => e
