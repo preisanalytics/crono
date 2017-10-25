@@ -47,15 +47,9 @@ module Crono
     private
 
     def perform_job(next_perform_at)
-      args = self.args
-      args = args.map do |hash|
-        if hash.keys.map(&:to_s).include?(:arguments)
-          hash = hash.stringify_keys
-          hash["arguments"]["scheduled_execution_time"] = next_perform_at
-        end
-        hash
-      end
-      performer.constantize.new.perform(*args)
+      args = self.args.first.stringify_keys
+      args["arguments"]["next_perform_at"] = next_perform_at
+      performer.constantize.new.perform(args)
       handle_job_success
     rescue StandardError => e
       handle_job_fail(e)
