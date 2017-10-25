@@ -47,9 +47,9 @@ module Crono
     private
 
     def perform_job(scheduled_execution_time)
-      args = self.args.first.stringify_keys
-      args["arguments"]["scheduled_execution_time"] = scheduled_execution_time
-      performer.constantize.new.perform(args)
+      current_args = self.args.first.stringify_keys
+      current_args["arguments"]["scheduled_execution_time"] = scheduled_execution_time
+      performer.constantize.new.perform(current_args)
       handle_job_success
     rescue StandardError => e
       handle_job_fail(e)
