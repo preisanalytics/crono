@@ -47,7 +47,7 @@ module Crono
     private
 
     def perform_job(scheduled_execution_time)
-      current_args = self.args.first.stringify_keys
+      current_args = self.args.first.deep_dup.stringify_keys
       current_args["arguments"]["scheduled_execution_time"] = scheduled_execution_time
       performer.constantize.new.perform(current_args)
       handle_job_success
