@@ -34,9 +34,10 @@ module Crono
           self.with_lock do 
             #check if it still should run
             if next_perform_at <= Time.now
+              old_next_perform_at = next_perform_at
               self.last_performed_at = Time.now
               self.next_perform_at = period.next(since: last_performed_at)
-              perform_job
+              perform_job(old_next_perform_at)
             end
           end
         end
@@ -45,7 +46,15 @@ module Crono
 
     private
 
-    def perform_job
+    def perform_job(next_perform_at)
+      args = self.args
+      args = args.map do |hash|
+        if hash.keys.map(&:to_s).include?(:arguments)
+          hash = hash.stringify_keys
+          hash["arguments"]["scheduled_execution_time"] = next_perform_at
+        end
+        hash
+      end
       performer.constantize.new.perform(*args)
       handle_job_success
     rescue StandardError => e
