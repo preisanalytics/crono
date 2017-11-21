@@ -32,7 +32,7 @@ module Crono
       Rails.logger.info 'Jobs:'
       Crono.scheduler.jobs.each do |job|
         Rails.logger.info "'#{job.performer}' with rule '#{job.period.description}'"\
-                    " next time will perform at #{job.next_perform_at}"
+          " next time will perform at #{job.next_perform_at}"
       end
     end
 
@@ -61,13 +61,21 @@ module Crono
       defined?(::Rails.root)
     end
 
+    def perform
+      job = nil
+      ActiveRecord::Base.transaction do
+        job = Crono::CronoJob.all_past.lock("FOR UPDATE SKIP LOCKED").first
+        job.perform if job
+      end
+      return true if job
+      false
+    end
+
     def start_updating_working_loop
-      @mutex = Mutex.new
       loop do
-        Crono::CronoJob.all_past.each do |job|
-          job.perform_locked @mutex
+        while perform
         end
-        sleep(10) 
+        sleep(10)
       end
     end
 

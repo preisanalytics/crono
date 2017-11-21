@@ -8,7 +8,7 @@ module Crono
     serialize :period, Crono::Period
 
     def self.all_past
-      where('next_perform_at <= ?', Time.now).where('pause IS FALSE AND maintenance_pause IS FALSE').all
+      where('next_perform_at <= ?', Time.now).where('pause IS FALSE AND maintenance_pause IS FALSE').order(:next_perform_at)
     end
 
     before_save :calculate_next_perform
@@ -28,20 +28,12 @@ module Crono
       self
     end
 
-    def perform_locked(mutex)
-      Thread.new do
-        mutex.synchronize do 
-          self.with_lock do 
-            #check if it still should run
-            if next_perform_at <= Time.now
-              scheduled_execution_time = next_perform_at
-              self.last_performed_at = Time.now
-              self.next_perform_at = period.next(since: last_performed_at)
-              perform_job(scheduled_execution_time)
-            end
-          end
-        end
-      end
+
+    def perform
+      scheduled_execution_time = next_perform_at
+      self.last_performed_at = Time.now
+      self.next_perform_at = period.next(since: last_performed_at)
+      perform_job(scheduled_execution_time)
     end
 
     private
