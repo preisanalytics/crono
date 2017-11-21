@@ -18,9 +18,11 @@ module Crono
     end
 
     def next(since: Time.now)
-      self.schedule.next_occurrence(since).to_time
+      next_occurrence = self.schedule.next_occurrence(since)
+      return next_occurrence.to_time if next_occurrence
+      nil
     end
-    
+
     def description
       self.schedule.recurrence_rules.map{ | rule | rule.to_s}.join(" and ")
     end

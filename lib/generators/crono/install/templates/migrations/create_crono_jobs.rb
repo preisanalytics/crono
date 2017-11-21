@@ -5,7 +5,7 @@ class CreateCronoJobs < ActiveRecord::Migration
       t.string    :performer, null: false
       t.jsonb     :period, null: false
       t.jsonb     :args
-      t.datetime  :next_perform_at, null: false
+      t.datetime  :next_perform_at
       t.datetime  :last_performed_at
       t.boolean   :healthy
       t.text      :log
