@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'crono/cli'
 
-describe Crono::CLI do
+xdescribe Crono::CLI do
   let(:cli) { Crono::CLI.instance }
 
   describe '#run' do

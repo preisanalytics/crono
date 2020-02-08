@@ -39,8 +39,7 @@ describe Crono::Scheduler do
       expect(next_jobs).to eq [jobs[0]]
 
       Timecop.travel(4.seconds.from_now)
-      expect(Thread).to receive(:new)
-      jobs[1].perform_locked Mutex.new
+      jobs[1].perform
 
       _, next_jobs = scheduler.next_jobs
       expect(next_jobs).to eq [jobs[0]]

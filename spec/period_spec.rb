@@ -4,14 +4,14 @@ describe Crono::Period do
   describe '#description' do
     it 'should return period description' do
       @period = Crono::Period.new(1.week, on: :monday, at: '15:20')
-      expect(@period.description).to be_eql('every 7 days at 15:20 on Monday')
+      expect(@period.description).to be_eql('every 1 week at 15:20 on Monday')
     end
   end
 
   describe '#to_h' do
     it 'should transform period' do
       @period = Crono::Period.new(1.week, on: :monday, at: '15:20')
-      expect(@period.to_h[:iteration]).to eq("7.days")
+      expect(@period.to_h[:iteration]).to eq("1.week")
     end
 
     it 'should transform at' do

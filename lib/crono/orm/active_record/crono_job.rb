@@ -50,19 +50,13 @@ module Crono
     end
 
     def handle_job_fail(exception)
-      finished_time_sec = format('%.2f', Time.now - last_performed_at)
+#      finished_time_sec = format('%.2f', Time.now - last_performed_at)
       self.healthy = false
-      Rails.logger.error "Finished #{performer} in #{finished_time_sec} seconds"\
-                " with error: #{exception.message}"
-      Rails.logger.error exception.backtrace.join("\n")
-      CommerceUp.metric.error("crono_count_not_perform", message: "exception during shedule execution", crono_job_id: self.id) if CommerceUp
     end
 
     def handle_job_success
-      finished_time_sec = format('%.2f', Time.now - last_performed_at)
+#      finished_time_sec = format('%.2f', Time.now - last_performed_at)
       self.healthy = true
-      Rails.logger.info "Finished #{performer} in #{finished_time_sec} seconds"
     end
-
   end
 end

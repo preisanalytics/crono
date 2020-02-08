@@ -66,36 +66,5 @@ describe Crono::CronoJob do
       expect(@crono_job.next_perform_at).to eq period.next(since: job.last_performed_at)
       expect(@crono_job.period.to_h).to eq ({iteration: "2.days" ,at:"15:0",on:nil})
     end
-
-    it 'should save and truncate job log_message' do
-      message = 'test message'
-      job.send(:log_message, message)
-      job.save
-      expect(job.reload.log).to include message
-      expect(job.job_log.string).to be_empty
-    end
-  end
-
-  describe '#log_message' do
-    it 'should write log messages to both common and job log' do
-      message = 'Test message'
-      expect(job.logger).to receive(:log).with(Logger::INFO, message)
-      expect(job.job_logger).to receive(:log).with(Logger::INFO, message)
-      job.send(:log_message, message)
-    end
-
-    it 'should write job log to Job#job_log' do
-      message = 'Test message'
-      job.send(:log_message, message)
-      expect(job.job_log.string).to include(message)
-    end
-  end
-
-  describe '#log_error' do
-    it 'should call log with ERROR severity' do
-      message = 'Test message'
-      expect(job).to receive(:log_message).with(message, Logger::ERROR)
-      job.send(:log_error, message)
-    end
   end
 end
