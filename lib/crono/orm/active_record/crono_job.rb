@@ -36,12 +36,18 @@ module Crono
       perform_job(scheduled_execution_time)
     end
 
+    def performer_instance
+      performer.contantize.new
+    end
+
     private
 
     def perform_job(scheduled_execution_time)
-      current_args = self.args.first.deep_dup.stringify_keys
+      current_args = self.args.deep_dup.stringify_keys
+      current_args["arguments"] ||={}
       current_args["arguments"]["scheduled_execution_time"] = scheduled_execution_time
-      performer.constantize.new.perform(current_args)
+      current_args["arguments"]["crono_job"] = self
+      performer_instance.perform(current_args)
       handle_job_success
     rescue StandardError => e
       handle_job_fail(e)
