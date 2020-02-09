@@ -20,8 +20,8 @@ describe Crono::CronoJob do
   describe '.all_past' do
     let(:period) { Crono::Period.new(20.minutes) }
     let!(:past_job) { Crono::CronoJob.create(performer: TestJob, period: period, args: []) }
-    let!(:past_job_paused) { Crono::CronoJob.create(performer: TestJob, period: period, args: [], pause: true) }
-    let!(:past_job_maintainenc_pause) { Crono::CronoJob.create(performer: TestJob, period: period, args: [], maintenance_pause: true) }
+    let!(:past_job_paused) { Crono::CronoJob.create(performer: TestJob, period: period, args: [], paused_at: 1.day.ago ) }
+    let!(:past_job_maintainenc_pause) { Crono::CronoJob.create(performer: TestJob, period: period, args: [], maintenance_paused_at: 1.day.ago) }
 
     it 'returns all past' do
       Timecop.freeze(Date.today + 2.days) do
@@ -36,7 +36,7 @@ describe Crono::CronoJob do
       Timecop.freeze(Date.today + 2.days) do
         expect(Crono::CronoJob.all_past.count > 0).to eq true
         Crono::CronoJob.all_past.each do |job|
-          expect(job.maintenance_pause).not_to eq true
+          expect(job.maintenance_paused_at).to be_nil
         end
       end
     end
@@ -45,7 +45,7 @@ describe Crono::CronoJob do
       Timecop.freeze(Date.today + 2.days) do
         expect(Crono::CronoJob.all_past.count > 0).to eq true
         Crono::CronoJob.all_past.each do |job|
-          expect(job.pause).not_to eq true
+          expect(job.paused_at).to be_nil
         end
       end
     end

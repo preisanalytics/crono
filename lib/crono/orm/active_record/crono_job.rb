@@ -8,7 +8,7 @@ module Crono
     serialize :period, Crono::Period
 
     def self.all_past
-      where('next_perform_at <= ?', Time.now).where('pause IS FALSE AND maintenance_pause IS FALSE AND next_perform_at IS NOT NULL').order(:next_perform_at)
+      where('next_perform_at <= ?', Time.now).where('paused_at IS NULL AND maintenance_paused_at IS NULL AND next_perform_at IS NOT NULL').order(:next_perform_at)
     end
 
     before_save :calculate_next_perform
