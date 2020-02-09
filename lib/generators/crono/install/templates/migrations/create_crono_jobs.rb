@@ -10,8 +10,8 @@ class CreateCronoJobs < ActiveRecord::Migration[4.2]
       t.boolean   :healthy
       t.text      :log
       t.timestamps null: false
-      t.boolean   :paused_at
-      t.boolean   :maintenance_paused_at
+      t.timestamp   :paused_at
+      t.timestamp   :maintenance_paused_at
     end
   end
 
