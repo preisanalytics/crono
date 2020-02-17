@@ -37,7 +37,7 @@ module Crono
     end
 
     def performer_instance
-      performer.contantize.new
+      performer.constantize.new
     end
 
     private
